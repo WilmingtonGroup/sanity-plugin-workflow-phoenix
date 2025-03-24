@@ -1,12 +1,12 @@
-import {DraggableLocation} from '@hello-pangea/dnd'
-import {useToast} from '@sanity/ui'
+import { DraggableLocation } from '@hello-pangea/dnd'
+import { useToast } from '@sanity/ui'
 import groq from 'groq'
 import React from 'react'
-import {useClient} from 'sanity'
-import {useListeningQuery} from 'sanity-plugin-utils'
+import { useClient } from 'sanity'
+import { useListeningQuery } from 'sanity-plugin-utils'
 
-import {API_VERSION} from '../constants'
-import {SanityDocumentWithMetadata, State} from '../types'
+import { API_VERSION } from '../constants'
+import { SanityDocumentWithMetadata, State } from '../types'
 
 const QUERY = groq`*[_type == "workflow.metadata"]|order(orderRank){
   "_metadata": {
@@ -15,6 +15,7 @@ const QUERY = groq`*[_type == "workflow.metadata"]|order(orderRank){
     documentId,
     state,
     orderRank,
+    deadline,
     "draftDocumentId": "drafts." + documentId,
   }
 }{
@@ -47,13 +48,13 @@ type WorkflowDocuments = {
 
 export function useWorkflowDocuments(schemaTypes: string[]): WorkflowDocuments {
   const toast = useToast()
-  const client = useClient({apiVersion: API_VERSION})
+  const client = useClient({ apiVersion: API_VERSION })
 
   // Get and listen to changes on documents + workflow metadata documents
-  const {data, loading, error} = useListeningQuery<
+  const { data, loading, error } = useListeningQuery<
     SanityDocumentWithMetadata[]
   >(QUERY, {
-    params: {schemaTypes},
+    params: { schemaTypes },
     initialValue: [],
   })
 
@@ -122,15 +123,15 @@ export function useWorkflowDocuments(schemaTypes: string[]): WorkflowDocuments {
       }
 
       // We need to know if it's a draft or not
-      const {_id, _type} = document
+      const { _id, _type } = document
 
       // Metadata + useDocumentOperation always uses Published id
-      const {documentId, _rev} = document._metadata || {}
+      const { documentId, _rev } = document._metadata || {}
 
       await client
         .patch(`workflow-metadata.${documentId}`)
         .ifRevisionId(_rev)
-        .set({state: newStateId, orderRank: newOrder})
+        .set({ state: newStateId, orderRank: newOrder })
         .commit()
         .then((res) => {
           toast.push({
@@ -155,13 +156,13 @@ export function useWorkflowDocuments(schemaTypes: string[]): WorkflowDocuments {
         })
 
       // Send back to the workflow board so a document update can happen
-      return {_id, _type, documentId, state: newState as State}
+      return { _id, _type, documentId, state: newState as State }
     },
     [client, toast, localDocuments]
   )
 
   return {
-    workflowData: {data: localDocuments, loading, error},
-    operations: {move},
+    workflowData: { data: localDocuments, loading, error },
+    operations: { move },
   }
 }

@@ -1,22 +1,27 @@
 /* eslint-disable react/prop-types */
-import {DragHandleIcon} from '@sanity/icons'
-import {Box, Card, CardTone, Flex, Stack, useTheme} from '@sanity/ui'
-import {useCallback, useEffect, useMemo, useState} from 'react'
+import { DragHandleIcon } from '@sanity/icons'
+import { Box, Card, CardTone, Flex, Stack, useTheme, Text } from '@sanity/ui'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import React from 'react';
 import {
   SchemaType,
   useSchema,
   ValidationStatus as ValidationStatusType,
 } from 'sanity'
-import {Preview} from 'sanity'
+import { Preview } from 'sanity'
 
-import {SanityDocumentWithMetadata, State, User} from '../../types'
+import { SanityDocumentWithMetadata, State, User } from '../../types'
 import UserDisplay from '../UserDisplay'
 import CompleteButton from './CompleteButton'
-import {DraftStatus} from './core/DraftStatus'
-import {PublishedStatus} from './core/PublishedStatus'
+import { DraftStatus } from './core/DraftStatus'
+import { PublishedStatus } from './core/PublishedStatus'
 import EditButton from './EditButton'
 import Validate from './Validate'
-import {ValidationStatus} from './ValidationStatus'
+import { ValidationStatus } from './ValidationStatus'
+import { useClient } from 'sanity';
+import { useCurrentUser } from 'sanity';
+import { API_VERSION } from '../../constants'
+
 
 type DocumentCardProps = {
   isDragDisabled: boolean
@@ -43,12 +48,13 @@ export function DocumentCard(props: DocumentCardProps) {
     toggleInvalidDocumentId,
     userList,
   } = props
-  const {assignees = [], documentId} = item._metadata ?? {}
+  const { assignees = [], documentId } = item._metadata ?? {}
   const schema = useSchema()
   const state = states.find((s) => s.id === item._metadata?.state)
 
   const isDarkMode = useTheme().sanity.color.dark
   const defaultCardTone = isDarkMode ? `transparent` : `default`
+
 
   // Validation only runs if the state requests it
   // Because it's not performant to run it on many documents simultaneously
@@ -59,7 +65,7 @@ export function DocumentCard(props: DocumentCardProps) {
       validation: [],
     })
 
-  const {isValidating, validation} = optimisticValidation
+  const { isValidating, validation } = optimisticValidation
 
   const handleValidation = useCallback((updates: ValidationStatusType) => {
     setOptimisticValidation(updates)
@@ -118,6 +124,12 @@ export function DocumentCard(props: DocumentCardProps) {
     [states, item._metadata.state]
   )
 
+  const client = useClient({ apiVersion: API_VERSION })
+  const currentUser = useCurrentUser();
+  const isAdmin = currentUser?.roles?.some(role => role.name === 'administrator');
+  const isOverdue = item._metadata?.deadline && new Date(item._metadata.deadline as string) < new Date();
+
+
   return (
     <>
       {state?.requireValidation ? (
@@ -135,7 +147,7 @@ export function DocumentCard(props: DocumentCardProps) {
               radius={2}
               paddingRight={2}
               tone={cardTone}
-              style={{pointerEvents: 'none'}}
+              style={{ pointerEvents: 'none' }}
             >
               <Flex align="center" justify="space-between" gap={1}>
                 <Box flex={1}>
@@ -146,7 +158,7 @@ export function DocumentCard(props: DocumentCardProps) {
                     schemaType={schema.get(item._type) as SchemaType}
                   />
                 </Box>
-                <Box style={{flexShrink: 0}}>
+                <Box style={{ flexShrink: 0 }}>
                   {hasError || isDragDisabled || isPatching ? null : (
                     <DragHandleIcon />
                   )}
@@ -155,6 +167,39 @@ export function DocumentCard(props: DocumentCardProps) {
             </Card>
 
             <Card padding={2} radius={2} tone="inherit">
+              <Flex align="center" justify="space-between" gap={3}>
+                <Box flex={1} style={{ border: isOverdue ? '2px solid red' : undefined }}>
+                  {isAdmin ? (
+                    <>
+                      <Card><Text size={2}>Deadline:</Text></Card>
+                      <input
+                        type="date"
+                        defaultValue={(item._metadata.deadline as string)?.slice(0, 16) || ''}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const newDeadline = e.target.value;
+
+                          client
+                            .patch(`workflow-metadata.${documentId}`)
+                            .set({ deadline: newDeadline })
+                            .commit()
+                            .catch(console.error);
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <p>
+                      <strong>Deadline:</strong>{' '}
+                      {item._metadata.deadline
+                        ? new Date(item._metadata.deadline as string).toLocaleDateString()
+                        : 'No deadline'}
+                    </p>
+                  )}
+                </Box>
+              </Flex>
+            </Card>
+
+            <Card padding={2} radius={2} tone="inherit">
+
               <Flex align="center" justify="space-between" gap={3}>
                 <Box flex={1}>
                   {documentId && (

@@ -1,10 +1,10 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 import Field from '../../components/DocumentCard/Field'
 import UserAssignmentInput from '../../components/UserAssignmentInput'
-import {API_VERSION} from '../../constants'
+import { API_VERSION } from '../../constants'
 import initialRank from '../../helpers/initialRank'
-import {State} from '../../types'
+import { State } from '../../types'
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export default (states: State[]) =>
@@ -22,12 +22,19 @@ export default (states: State[]) =>
         options: {
           list: states.length
             ? states.map((state) => ({
-                value: state.id,
-                title: state.title,
-              }))
+              value: state.id,
+              title: state.title,
+            }))
             : [],
           layout: 'radio',
         },
+      }),
+
+      defineField({
+        name: 'deadline',
+        title: 'Deadline',
+        description: 'some desc',
+        type: 'datetime',
       }),
       defineField({
         name: 'documentId',
@@ -45,7 +52,7 @@ export default (states: State[]) =>
         description: 'Used to maintain order position of cards in the Tool.',
         type: 'string',
         readOnly: true,
-        initialValue: async (p, {getClient}) => {
+        initialValue: async (p, { getClient }) => {
           const lastDocOrderRank = await getClient({
             apiVersion: API_VERSION,
           }).fetch(`*[_type == $type]|order(@[$order] desc)[0][$order]`, {
@@ -59,7 +66,7 @@ export default (states: State[]) =>
       defineField({
         type: 'array',
         name: 'assignees',
-        of: [{type: 'string'}],
+        of: [{ type: 'string' }],
         components: {
           input: UserAssignmentInput,
         },

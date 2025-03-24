@@ -15,17 +15,17 @@ import {
   useTheme,
   useToast,
 } from '@sanity/ui'
-import {LexoRank} from 'lexorank'
+import { LexoRank } from 'lexorank'
 import React from 'react'
-import {Tool, useCurrentUser} from 'sanity'
-import {Feedback, useProjectUsers} from 'sanity-plugin-utils'
+import { Tool, useCurrentUser } from 'sanity'
+import { Feedback, useProjectUsers } from 'sanity-plugin-utils'
 
-import {API_VERSION} from '../constants'
-import {arraysContainMatchingString} from '../helpers/arraysContainMatchingString'
-import {filterItemsAndSort} from '../helpers/filterItemsAndSort'
-import {useWorkflowDocuments} from '../hooks/useWorkflowDocuments'
-import {State, WorkflowConfig} from '../types'
-import {DocumentCard} from './DocumentCard'
+import { API_VERSION } from '../constants'
+import { arraysContainMatchingString } from '../helpers/arraysContainMatchingString'
+import { filterItemsAndSort } from '../helpers/filterItemsAndSort'
+import { useWorkflowDocuments } from '../hooks/useWorkflowDocuments'
+import { State, WorkflowConfig } from '../types'
+import { DocumentCard } from './DocumentCard'
 import DocumentList from './DocumentList'
 import Filters from './Filters'
 import StateTitle from './StateTitle'
@@ -36,27 +36,27 @@ type WorkflowToolProps = {
 }
 
 export default function WorkflowTool(props: WorkflowToolProps) {
-  const {schemaTypes = [], states = []} = props?.tool?.options ?? {}
+  const { schemaTypes = [], states = [] } = props?.tool?.options ?? {}
 
   const isDarkMode = useTheme().sanity.color.dark
   const defaultCardTone = isDarkMode ? 'default' : 'transparent'
   const toast = useToast()
 
-  const userList = useProjectUsers({apiVersion: API_VERSION})
+  const userList = useProjectUsers({ apiVersion: API_VERSION })
 
   const user = useCurrentUser()
   const userRoleNames = user?.roles?.length
     ? user?.roles.map((r) => r.name)
     : []
 
-  const {workflowData, operations} = useWorkflowDocuments(schemaTypes)
+  const { workflowData, operations } = useWorkflowDocuments(schemaTypes)
   const [patchingIds, setPatchingIds] = React.useState<string[]>([])
 
   // Data to display in cards
-  const {data, loading, error} = workflowData
+  const { data, loading, error } = workflowData
 
   // Operations to perform on cards
-  const {move} = operations
+  const { move } = operations
 
   const [undroppableStates, setUndroppableStates] = React.useState<string[]>([])
   const [draggingFrom, setDraggingFrom] = React.useState(``)
@@ -67,8 +67,8 @@ export default function WorkflowTool(props: WorkflowToolProps) {
   // 2. The "source" State State has a list of transitions and the "destination" State is not in that list
   const handleDragStart = React.useCallback(
     (start: DragStart) => {
-      const {draggableId, source} = start
-      const {droppableId: currentStateId} = source
+      const { draggableId, source } = start
+      const { droppableId: currentStateId } = source
       setDraggingFrom(currentStateId)
 
       const document = data.find(
@@ -98,8 +98,8 @@ export default function WorkflowTool(props: WorkflowToolProps) {
       const statesThatCannotBeTransitionedToIds =
         state.transitions && state.transitions.length
           ? states
-              .filter((s) => !state.transitions?.includes(s.id))
-              .map((s) => s.id)
+            .filter((s) => !state.transitions?.includes(s.id))
+            .map((s) => s.id)
           : []
 
       if (statesThatCannotBeTransitionedToIds.length) {
@@ -124,7 +124,7 @@ export default function WorkflowTool(props: WorkflowToolProps) {
       setUndroppableStates([])
       setDraggingFrom(``)
 
-      const {draggableId, source, destination} = result
+      const { draggableId, source, destination } = result
 
       if (
         // No destination?
@@ -231,7 +231,7 @@ export default function WorkflowTool(props: WorkflowToolProps) {
   // Used for the user filter UI
   const uniqueAssignedUsers = React.useMemo(() => {
     const uniqueUserIds = data.reduce((acc, item) => {
-      const {assignees = []} = item._metadata ?? {}
+      const { assignees = [] } = item._metadata ?? {}
       const newAssignees = assignees?.length
         ? assignees.filter((a) => !acc.includes(a))
         : []
