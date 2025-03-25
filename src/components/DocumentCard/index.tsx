@@ -126,7 +126,7 @@ export function DocumentCard(props: DocumentCardProps) {
 
   const client = useClient({ apiVersion: API_VERSION })
   const currentUser = useCurrentUser();
-  const isAdmin = currentUser?.roles?.some(role => role.name === 'administrator');
+  const isAdmin = currentUser?.roles?.some(role => role.name === '!administrator');
   const isOverdue = item._metadata?.deadline && new Date(item._metadata.deadline as string) < new Date();
 
 
@@ -168,10 +168,10 @@ export function DocumentCard(props: DocumentCardProps) {
 
             <Card padding={2} radius={2} tone="inherit">
               <Flex align="center" justify="space-between" gap={3}>
-                <Box flex={1} style={{ border: isOverdue ? '2px solid red' : undefined }}>
+                <Box flex={1}>
                   {isAdmin ? (
                     <>
-                      <Card><Text size={2}>Deadline:</Text></Card>
+                      <Card><Text style={{ color: isOverdue ? 'red' : undefined }} size={2}>Deadline:</Text></Card>
                       <input
                         type="date"
                         defaultValue={(item._metadata.deadline as string)?.slice(0, 16) || ''}
@@ -187,12 +187,13 @@ export function DocumentCard(props: DocumentCardProps) {
                       />
                     </>
                   ) : (
-                    <p>
-                      <strong>Deadline:</strong>{' '}
-                      {item._metadata.deadline
-                        ? new Date(item._metadata.deadline as string).toLocaleDateString()
-                        : 'No deadline'}
-                    </p>
+                    <Card>
+                      <Text style={{ color: isOverdue ? 'red' : undefined }} size={2}>Deadline:
+                        {item._metadata.deadline
+                          ? new Date(item._metadata.deadline as string).toLocaleDateString()
+                          : 'No deadline'}
+                      </Text>
+                    </Card>
                   )}
                 </Box>
               </Flex>
@@ -224,6 +225,7 @@ export function DocumentCard(props: DocumentCardProps) {
                 {isLastState && states.length <= 3 ? (
                   <CompleteButton
                     documentId={documentId}
+                    type={item._type}
                     disabled={!userRoleCanDrop}
                   />
                 ) : null}
@@ -232,6 +234,7 @@ export function DocumentCard(props: DocumentCardProps) {
                 <Stack paddingTop={2}>
                   <CompleteButton
                     documentId={documentId}
+                    type={item._type}
                     disabled={!userRoleCanDrop}
                   />
                 </Stack>

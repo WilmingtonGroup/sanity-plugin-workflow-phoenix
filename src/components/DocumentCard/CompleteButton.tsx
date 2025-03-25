@@ -1,19 +1,23 @@
-import {CheckmarkIcon} from '@sanity/icons'
-import {Box, Button, Text, Tooltip, useToast} from '@sanity/ui'
+import { CheckmarkIcon } from '@sanity/icons'
+import { Box, Button, Text, Tooltip, useToast } from '@sanity/ui'
 import React from 'react'
-import {useClient} from 'sanity'
+import { useClient } from 'sanity'
+import { useDocumentOperation } from 'sanity'
 
-import {API_VERSION} from '../../constants'
+import { API_VERSION } from '../../constants'
 
 type CompleteButtonProps = {
   documentId: string
-  disabled: boolean
+  disabled: boolean,
+  type: string
 }
 
 export default function CompleteButton(props: CompleteButtonProps) {
-  const {documentId, disabled = false} = props
-  const client = useClient({apiVersion: API_VERSION})
+  const { documentId, disabled = false, type } = props
+  const client = useClient({ apiVersion: API_VERSION })
   const toast = useToast()
+  const { publish } = useDocumentOperation(documentId, type);
+
 
   const handleComplete: React.MouseEventHandler<HTMLButtonElement> =
     React.useCallback(
@@ -23,6 +27,11 @@ export default function CompleteButton(props: CompleteButtonProps) {
         if (!id) {
           return
         }
+
+
+        return;
+        // Publish the document
+        publish.execute();
 
         client
           .delete(`workflow-metadata.${id}`)
@@ -54,7 +63,7 @@ export default function CompleteButton(props: CompleteButtonProps) {
       <Button
         value={documentId}
         onClick={handleComplete}
-        text="Complete"
+        text="Publish"
         icon={CheckmarkIcon}
         tone="positive"
         mode="ghost"
