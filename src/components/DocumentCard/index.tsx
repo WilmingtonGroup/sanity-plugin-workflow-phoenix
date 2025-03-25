@@ -126,7 +126,7 @@ export function DocumentCard(props: DocumentCardProps) {
 
   const client = useClient({ apiVersion: API_VERSION })
   const currentUser = useCurrentUser();
-  const isAdmin = currentUser?.roles?.some(role => role.name === '!administrator');
+  const isAdmin = currentUser?.roles?.some(role => role.name === 'administrator');
   const isOverdue = item._metadata?.deadline && new Date(item._metadata.deadline as string) < new Date();
 
 
@@ -171,20 +171,21 @@ export function DocumentCard(props: DocumentCardProps) {
                 <Box flex={1}>
                   {isAdmin ? (
                     <>
-                      <Card><Text style={{ color: isOverdue ? 'red' : undefined }} size={2}>Deadline:</Text></Card>
-                      <input
-                        type="date"
-                        defaultValue={(item._metadata.deadline as string)?.slice(0, 16) || ''}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          const newDeadline = e.target.value;
+                      <Card><Text style={{ color: isOverdue ? 'red' : undefined }} size={2}>Deadline:
+                        <input
+                          type="date"
+                          defaultValue={(item._metadata.deadline as string)?.slice(0, 16) || ''}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const newDeadline = e.target.value;
 
-                          client
-                            .patch(`workflow-metadata.${documentId}`)
-                            .set({ deadline: newDeadline })
-                            .commit()
-                            .catch(console.error);
-                        }}
-                      />
+                            client
+                              .patch(`workflow-metadata.${documentId}`)
+                              .set({ deadline: newDeadline })
+                              .commit()
+                              .catch(console.error);
+                          }}
+                        />
+                      </Text></Card>
                     </>
                   ) : (
                     <Card>

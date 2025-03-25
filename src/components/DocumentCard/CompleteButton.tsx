@@ -28,8 +28,6 @@ export default function CompleteButton(props: CompleteButtonProps) {
           return
         }
 
-
-        return;
         // Publish the document
         publish.execute();
 
@@ -56,7 +54,7 @@ export default function CompleteButton(props: CompleteButtonProps) {
       portal
       content={
         <Box padding={2}>
-          <Text size={1}>Remove this document from Workflow</Text>
+          <Text size={1}>Publish and remove this document from Workflow</Text>
         </Box>
       }
     >
